@@ -9,7 +9,7 @@ const flash = require('connect-flash')
 const config = require('./config/database').mongo
 
 const app = express()
-const PORT = 3000
+const PORT = 4000
 
 const authen = require('./routes/authen')
 
