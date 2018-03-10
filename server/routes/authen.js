@@ -1,7 +1,12 @@
 const express = require('express')
 const md5 = require('blueimp-md5')
 const cookie = require('cookie')
+const mongoose = require('mongoose')
+
 const User = require('../models/User')
+const Maps = require('../models/Map')
+const SubObject = require('../models/SubObject')
+const MainObject = require('../models/MainObject')
 
 const authen = express.Router()
 const Userlist = []
@@ -13,7 +18,7 @@ authen.use((req, res, next) => {
   next()
 })
 
-authen.route('/')
+authen.route('/user')
   .get((req, res, next) => {
     console.log(req.headers.authorization, TokenUserList)
       const checkToken = TokenUserList.findIndex((element) => {
@@ -80,44 +85,67 @@ authen.route('/login')
         __token: shuffledTokenKey
       })
 
-
-      // 
-      // for(let duplicateToken=[], indexDupTok=0; indexDupTok< TokenUserList.length; indexDupTok++){
-      //   if (TokenUserList[indexDupTok] == tokenKey){
-      //     TokenUserList.push(indexDupTok)
-      //   }
-      // }
-      // if (duplicateToken.length > 0){
-      //   console.log('duplicateToken: ')
-      //   console.log(duplicateToken)
-      //   // Delete
-      //   Userlist.splice(indexDupTok, 1)
-      //   TokenUserList.splice(indexDupTok, 1)
-      //   //  Add new 
-      //   res.send({
-      //     user: docs,
-      //     __token: docs.username + docs.password + Date.now()
-      //   })
-      // }
-
-     
-      
-      /*
-      const index = Userlist.findIndex((element) => {
-        return element.username == docs.username
+authen.route('/userdata/:user')
+    .get((req, res) => {
+      User.findOne({_id:mongoose.Types.ObjectId(req.params.user)}).then((userData)=>{
+        if(!userData)
+          res.send({error: 'not found'})
+        else
+          Maps.findOne({userId: userData._id}).then(mapData=>{
+            if(!mapData)
+              res.send({error: 'not found'})
+            else
+            {
+              mapData.userId = userData
+              res.send(mapData)
+            }
+        })
+      }).catch(err =>{
+        res.send(err)
       })
-      console.log(index)
-      if(index !== -1) {
-        Userlist.splice(index, 1)
-        TokenUserList.splice(index, 1)
-      }
-      Userlist.push(docs)
-      TokenUserList.push(docs._id)
-      res.send({
-        user: docs,
-        __token: docs.username + docs.password + Date.now()
+    })
+
+authen.route('/map')
+    .get((req, res) => {
+      Maps.find({}, (err, docs) => {
+        res.send(docs)
       })
-      */
+    })
+    .post((req, res) => {
+      const newMap = Maps(req.body)
+      newMap.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
+
+    authen.route('/subob')
+    .get((req, res) => {
+      SubObject.find({}, (err, docs) => {
+        res.send(docs)
+      })
+    })
+    .post((req, res) => {
+      const newSubObject = SubObject(req.body)
+      newSubObject.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
+
+    authen.route('/mainob')
+    .get((req, res) => {
+      MainObject.find({}, (err, docs) => {
+        res.send(docs)
+      })
+    })
+    .post((req, res) => {
+      const newMainObject = MainObject(req.body)
+      newMainObject.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
     }
   })
 })
