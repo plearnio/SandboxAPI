@@ -1,7 +1,6 @@
 import React from 'react'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import testReactRouter from './testReactRouter'
 const Welcome = ({user, onSignOut})=> {
   // This is a dumb "stateless" component
   return (
@@ -118,7 +117,7 @@ class App extends React.Component {
     return (
       <div>
         
-        {/* <h1 onClick={this.checkToken}>My cool App</h1>
+        <h1 onClick={this.checkToken}>My cool App</h1>
         { 
           (this.state.user) ? 
             <Welcome 
@@ -129,8 +128,7 @@ class App extends React.Component {
             <LoginForm 
              onSignIn={this.signIn.bind(this)} 
             />
-        } */}
-        <testReactRouter/>
+        }
       </div>
     )
     

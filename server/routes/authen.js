@@ -13,7 +13,7 @@ authen.use((req, res, next) => {
   next()
 })
 
-authen.route('/')
+authen.route('/users')
   .get((req, res, next) => {
     console.log(req.headers.authorization, TokenUserList)
       const checkToken = TokenUserList.findIndex((element) => {
@@ -32,6 +32,39 @@ authen.route('/')
       if (err) res.send('insert error')
       else res.send(docs)
     })
+  })
+
+authen.route('/users/:id')
+  .get((req, res, next) => {
+    console.log(req.headers.authorization, TokenUserList)
+      const checkToken = TokenUserList.findIndex((element) => {
+        return element == req.headers.authorization
+      })
+      if (checkToken === -1) {
+        res.send({ error: 'no permission' })
+      } else { 
+        req.tokenIndex = checkToken
+        next() }
+    }, (req, res) => {
+      console.log(`user's token is at ${req.tokenIndex}`)
+      res.send(Userlist[req.tokenIndex])
+    })
+
+authen.route('/logout')
+.get((req, res, next) => {
+  console.log(req.headers.authorization, TokenUserList)
+    const checkToken = TokenUserList.findIndex((element) => {
+      return element == req.headers.authorization
+    })
+    if (checkToken === -1) {
+      res.send({ error: 'no permission' })
+    } else { 
+      req.tokenIndex = checkToken
+      next() }
+  }, (req, res) => {
+    Userlist.splice(req.tokenIndex, 1)
+    TokenUserList.splice(req.tokenIndex, 1)
+    res.send({ status: 'complete' })
   })
 
 authen.route('/login')
@@ -79,45 +112,6 @@ authen.route('/login')
         user: docs,
         __token: shuffledTokenKey
       })
-
-
-      // 
-      // for(let duplicateToken=[], indexDupTok=0; indexDupTok< TokenUserList.length; indexDupTok++){
-      //   if (TokenUserList[indexDupTok] == tokenKey){
-      //     TokenUserList.push(indexDupTok)
-      //   }
-      // }
-      // if (duplicateToken.length > 0){
-      //   console.log('duplicateToken: ')
-      //   console.log(duplicateToken)
-      //   // Delete
-      //   Userlist.splice(indexDupTok, 1)
-      //   TokenUserList.splice(indexDupTok, 1)
-      //   //  Add new 
-      //   res.send({
-      //     user: docs,
-      //     __token: docs.username + docs.password + Date.now()
-      //   })
-      // }
-
-     
-      
-      /*
-      const index = Userlist.findIndex((element) => {
-        return element.username == docs.username
-      })
-      console.log(index)
-      if(index !== -1) {
-        Userlist.splice(index, 1)
-        TokenUserList.splice(index, 1)
-      }
-      Userlist.push(docs)
-      TokenUserList.push(docs._id)
-      res.send({
-        user: docs,
-        __token: docs.username + docs.password + Date.now()
-      })
-      */
     }
   })
 })
