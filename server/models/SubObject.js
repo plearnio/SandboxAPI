@@ -14,20 +14,15 @@ const subobjectSchema = new Schema({
   description:{type: String , required: true},
   biome: [{type: String , required: true}],
   rarity: {type: Number , required: true},
-  size: {type: Number},
+  width: {type: Number},//
+  height: Number,
   nextPhase: {type: Schema.Types.ObjectId, ref: 'SubObject' },
   timeToNextPhase: {type: Number},
-  slotItem: [{
-      name: String,
-      numberOfSlot: Number
-  }],
-  outputSlot: [{
-      name: String,
-      numberOfSlot: Number
-  }],
+  slotItem: Schema.Types.Array,
+  outputSlot: Schema.Types.Array,
   actions: [{
       name: String,
-      requireSkill: [{type:Schema.Types.ObjectId}],
+      requireSkill: Schema.Types.Array,
       inputFromHand: {type:Schema.Types.ObjectId},
       inputFromSlot: {type:Schema.Types.ObjectId},
       output: {type:Schema.Types.ObjectId},
