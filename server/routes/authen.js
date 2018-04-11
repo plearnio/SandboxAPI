@@ -1,7 +1,14 @@
 const express = require('express')
-const cookie = require('cookie')
-const User = require('../models/User')
+const path = require('path')
 const md5 = require('blueimp-md5')
+const cookie = require('cookie')
+const mongoose = require('mongoose')
+
+const User = require('../models/User')
+const Maps = require('../models/Map')
+const SubObject = require('../models/SubObject')
+const MainObject = require('../models/MainObject')
+
 const authen = express.Router()
 const Userlist = []
 const TokenUserList = []
@@ -111,8 +118,182 @@ authen.route('/login')
         user: docs,
         __token: shuffledTokenKey
       })
-    }
-  })
+
+authen.route('/userdata/:user')
+    .get((req, res) => {
+      User.findOne({_id:mongoose.Types.ObjectId(req.params.user)}).then((userData)=>{
+        if(!userData)
+          res.send({error: 'not found'})
+        else
+          Maps.findOne({userId: userData._id}).then(mapData=>{
+            if(!mapData)
+              res.send({error: 'not found'})
+            else
+            {
+              mapData.userId = userData
+              res.send(mapData)
+            }
+        })
+      }).catch(err =>{
+        res.send(err)
+      })
+    })
+
+authen.use(express.static(path.join(__dirname, '../../public')))
+authen.route('/getPic/:name')
+  .get((req, res) => {
+    res.sendFile(path.resolve(`./public/objects/${req.params.name}.jpg`))
 })
+
+authen.route('/createMap/:user')
+  .post((req, res) => {
+    let maxNumOfMap = 5
+    const allObjects = []
+    const newObjectinMap = []
+    const resultMap = []
+    const array = []
+    const shuffle = (a) => {
+        let j, x, i;
+        for (i = a.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = a[i];
+            a[i] = a[j];
+            a[j] = x;
+        }
+    }
+    SubObject.find({},(err,subObjects)=>{
+      subObjects.forEach((subObject, index) => {
+        console.log(subObject.rarity)
+        for( let i = 0; i < subObject.rarity; i += 1) {
+          allObjects.push(subObject)
+        }
+      })
+      newObjectinMap.push(subObjects[0])
+      newObjectinMap[0].default = 'yangNa'
+      let sizeObject = 0
+      console.log(sizeObject + 'asdasdasdasdasdsaad')
+      for( let i = 0; i < maxNumOfMap; i += 1) {
+        const indexObj = Math.floor(Math.random() * ((allObjects.length - 1)))
+        newObjectinMap.push(allObjects[indexObj])
+        sizeObject += allObjects[indexObj].width // width
+        console.log(allObjects[indexObj]+`qweqiweu`)
+      }
+      for( let i = sizeObject; i < 48; i += 1) {
+        newObjectinMap.push('empty')
+        console.log(newObjectinMap)
+      } // tile
+      // shuffle
+      console.log(newObjectinMap)
+      shuffle(newObjectinMap)
+      for(let i=0; i<newObjectinMap.length; i+=1)
+      {
+        
+        if(newObjectinMap[i] !== 'empty') {
+                  const dummySlotItem = []
+                  const dummySlotOutput = []
+                  newObjectinMap[i].slotItem.forEach((sl) => {
+                    dummySlotItem.push({
+                      name: sl.name,
+                      items: []
+                    })
+                  })
+                  newObjectinMap[i].outputSlot.forEach((sl) => {
+                    dummySlotOutput.push({
+                      name: sl.name,
+                      items: []
+                    })
+                  })
+                  if (newObjectinMap[i].default === 'yangNa') {
+                    resultMap.push({
+                      objectId: newObjectinMap[i]._id,
+                      x: i,
+                      y: 0,
+                      itemInSlot: [{
+                        name: 'อุปกรณ์เสริม',
+                        items: []
+                      }],
+                      itemInOuput: [{
+                        name: 'ผลผลิต',
+                        items: [{}]
+                      }]
+                    })
+                  } else {
+                    resultMap.push({
+                      objectId: newObjectinMap[i]._id,
+                      x: i,
+                      y: 0,
+                      itemInSlot: dummySlotItem,
+                      itemInOuput: dummySlotOutput
+                    })
+                  }
+                }
+      }
+      
+      // [ a, b ,a ,a ,b , null, ....]
+      // console.log(resultMap) // subobject in area
+      const mapData = {
+        biome: 'Tropical Forest',
+        userId: req.params.user,
+        width: 2,
+        height:0,
+        tilePerArea: 48,
+        mainArea: 0,
+        area: [{
+          subBiome: 'Plain Land',
+          objectsInMap: resultMap,
+          animalsInMap: [],
+          itemsInMap: []
+        }]
+      }
+      const createNewMap = Maps(mapData)
+      createNewMap.save((err,docs) => {
+        if (err) res.send('error')
+        else res.send(docs)
+      })
+    })
+    
+  })
+
+authen.route('/map')
+    .get((req, res) => {
+      Maps.find({}, (err, docs) => {
+        res.send(docs)
+      })
+    })
+    .post((req, res) => {
+      const newMap = Maps(req.body)
+      newMap.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
+
+    authen.route('/subob')
+    .get((req, res) => {
+      SubObject.find({}, (err, docs) => {
+        res.send(docs)
+      })
+    })
+    .post((req, res) => {
+      const newSubObject = SubObject(req.body)
+      newSubObject.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
+
+authen.route('/mainob')
+    .get((req, res) => {
+      MainObject.find({}, (err, docs) => {
+        res.send(docs)
+      })
+    })
+    .post((req, res) => {
+      const newMainObject = MainObject(req.body)
+      newMainObject.save((err, docs) => {
+        if (err) res.send('insert error')
+        else res.send(docs)
+      })
+    })
 
 module.exports = authen
