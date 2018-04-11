@@ -19,7 +19,7 @@ authen.use((req, res, next) => {
   next()
 })
 
-authen.route('/user')
+authen.route('/users')
   .get((req, res, next) => {
     console.log(req.headers.authorization, TokenUserList)
       const checkToken = TokenUserList.findIndex((element) => {
@@ -38,6 +38,39 @@ authen.route('/user')
       if (err) res.send('insert error')
       else res.send(docs)
     })
+  })
+
+authen.route('/users/:id')
+  .get((req, res, next) => {
+    console.log(req.headers.authorization, TokenUserList)
+      const checkToken = TokenUserList.findIndex((element) => {
+        return element == req.headers.authorization
+      })
+      if (checkToken === -1) {
+        res.send({ error: 'no permission' })
+      } else { 
+        req.tokenIndex = checkToken
+        next() }
+    }, (req, res) => {
+      console.log(`user's token is at ${req.tokenIndex}`)
+      res.send(Userlist[req.tokenIndex])
+    })
+
+authen.route('/logout')
+.get((req, res, next) => {
+  console.log(req.headers.authorization, TokenUserList)
+    const checkToken = TokenUserList.findIndex((element) => {
+      return element == req.headers.authorization
+    })
+    if (checkToken === -1) {
+      res.send({ error: 'no permission' })
+    } else { 
+      req.tokenIndex = checkToken
+      next() }
+  }, (req, res) => {
+    Userlist.splice(req.tokenIndex, 1)
+    TokenUserList.splice(req.tokenIndex, 1)
+    res.send({ status: 'complete' })
   })
 
 authen.route('/login')
@@ -249,7 +282,7 @@ authen.route('/map')
       })
     })
 
-    authen.route('/mainob')
+authen.route('/mainob')
     .get((req, res) => {
       MainObject.find({}, (err, docs) => {
         res.send(docs)
@@ -262,8 +295,5 @@ authen.route('/map')
         else res.send(docs)
       })
     })
-    }
-  })
-})
 
 module.exports = authen

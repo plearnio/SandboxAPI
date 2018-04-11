@@ -9,7 +9,7 @@ const flash = require('connect-flash')
 const config = require('./config/database').mongo
 
 const app = express()
-const PORT = 4000
+const PORT = 5000 // API
 
 const authen = require('./routes/authen')
 
@@ -18,7 +18,7 @@ mongoose.connect(`mongodb://${config.host}:${config.port}/${config.database}`, (
   else console.log('connect success')
 })
 
-app.use('*', cors({ origin: 'http://localhost:3000' }))
+app.use('*', cors({ origin: '*' }))
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
