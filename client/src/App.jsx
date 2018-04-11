@@ -12,16 +12,16 @@ const Welcome = ({user, onSignOut})=> {
 }
 
 class LoginForm extends React.Component {
-  
+
   // Using a class based component here because we're accessing DOM refs
- 
+
   handleSignIn(e) {
     e.preventDefault()
     let username = this.refs.username.value
     let password = this.refs.password.value
     this.props.onSignIn(username, password)
   }
-  
+
   render() {
     return (
       <form onSubmit={this.handleSignIn.bind(this)}>
@@ -55,7 +55,7 @@ class App extends React.Component {
     // calling setState will re-render the entire app (efficiently!)
     const authOptions = {
       method: 'POST',
-      url: 'http://localhost:4000/authen/login',
+      url: 'http://localhost:5000/authen/login',
       data: {
         username: username,
         password: password
@@ -93,7 +93,7 @@ class App extends React.Component {
   checkToken() {
     const authOptions = {
       method: 'GET',
-      url: 'http://localhost:4000/authen/',
+      url: 'http://localhost:5000/authen/',
       headers: {
           'Authorization': this.state.__token,
           'Content-Type': 'application/x-www-form-urlencoded'

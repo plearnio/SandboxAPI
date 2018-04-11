@@ -1,8 +1,7 @@
 const express = require('express')
-const md5 = require('blueimp-md5')
 const cookie = require('cookie')
 const User = require('../models/User')
-
+const md5 = require('blueimp-md5')
 const authen = express.Router()
 const Userlist = []
 const TokenUserList = []

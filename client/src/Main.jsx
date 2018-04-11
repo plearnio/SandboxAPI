@@ -56,7 +56,7 @@ class Main extends Component {
   componentWillMount() {
     if  (Cookies.get('__token')) {
       this.checkToken().then((userData) => {
-        if  (userData.username) {
+        if  (userData && userData.username) {
           this.setState({
             userData: {
               user: userData

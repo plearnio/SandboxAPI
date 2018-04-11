@@ -51,7 +51,7 @@ class Login extends Component {
   signIn(username, password) {
     const authOptions = {
       method: 'POST',
-      url: 'http://localhost:4000/authen/login',
+      url: 'http://localhost:5000/authen/login',
       data: {
         username: username,
         password: password
@@ -66,13 +66,14 @@ class Login extends Component {
     });
 
     userData.then((res) => {
-      console.log(res)
-      if (res.data !== 'wrong user or password') {
+      if (res && res.data !== 'wrong user or password') {
         Cookies.set('__token', res.data.__token);
         this.props.setUserData({
           user: res.data.user
         })
         this.setState({ redirectToReferrer: true })
+      } else {
+        alert('no response from server')
       }
     })
   }
