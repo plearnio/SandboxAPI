@@ -9,64 +9,116 @@ const Maps = require('../models/Map')
 const SubObject = require('../models/SubObject')
 const MainObject = require('../models/MainObject')
 
+const createMap = require('../utils/createMap')
+
 const authen = express.Router()
 const Userlist = []
 const TokenUserList = []
-let i = 0
 
 authen.use((req, res, next) => {
-  console.log('middleware')
+  // console.log('middleware')
   next()
 })
 
+authen.use(express.static(path.join(__dirname, '../../public')))
+
 authen.route('/users')
   .get((req, res, next) => {
-    console.log(req.headers.authorization, TokenUserList)
-      const checkToken = TokenUserList.findIndex((element) => {
-        return element == req.headers.authorization
-      })
-      console.log(checkToken)
-      if (checkToken === -1) {
-        res.send({ error: 'unauthentication' })
-      } else { next() }
-    }, (req, res) => {
-      res.send(Userlist)
-    })
+    console.log(req.headers.authorization, TokenUserList, Userlist)
+    const checkToken = TokenUserList.findIndex(element => element === req.headers.authorization)
+    console.log(checkToken)
+    if (checkToken === -1) {
+      res.send({ error: 'unauthentication' })
+    } else { next() }
+  }, (req, res) => {
+    res.send(Userlist)
+  })
   .post((req, res) => {
-    const newUser = User(req.body)
-    newUser.save((err, docs) => {
-      if (err) res.send('insert error')
-      else res.send(docs)
-    })
+    console.log(req.body)
+    if (!req.body.username || !req.body.password || !req.body.name) res.send({ error: 'something missing' })
+    else {
+      User.findOne({ username: req.body.username }).then((user) => {
+        if (user) res.send({ error: 'this name already used in system' })
+        else {
+          const newUser = {
+            gameGeneralStatus: {
+              health: 100,
+              energy: 100,
+              hunger: 100,
+            },
+            experience: {
+              level: 1,
+              nowExp: 0,
+              maxExp: 100,
+            }
+          }
+          newUser.username = req.body.username
+          newUser.password = req.body.password
+          newUser.name = req.body.name
+          User(newUser).save().then((userData) => {
+            createMap({ userIdInput: userData._id, nameInput: 'test land 101' }).then((mapData) => {
+              console.log(mapData)
+              userData.pos = {
+                map: mongoose.Types.ObjectId(mapData._id),
+                mapIndex: mapData.mainArea,
+                x: 24,
+                y: 11
+              }
+              userData.save().then((userUpdated) => {
+                res.send({
+                  map: mapData,
+                  user: userUpdated
+                })
+              })
+            })
+          }).catch((err) => {
+            res.send(err)
+          })
+        }
+      })
+    }
   })
 
 authen.route('/users/:id')
   .get((req, res, next) => {
     console.log(req.headers.authorization, TokenUserList)
-      const checkToken = TokenUserList.findIndex((element) => {
-        return element == req.headers.authorization
-      })
-      if (checkToken === -1) {
-        res.send({ error: 'no permission' })
-      } else { 
-        req.tokenIndex = checkToken
-        next() }
-    }, (req, res) => {
-      console.log(`user's token is at ${req.tokenIndex}`)
-      res.send(Userlist[req.tokenIndex])
-    })
-
-authen.route('/logout')
-.get((req, res, next) => {
-  console.log(req.headers.authorization, TokenUserList)
-    const checkToken = TokenUserList.findIndex((element) => {
-      return element == req.headers.authorization
-    })
+    const checkToken = TokenUserList.findIndex(element => element === req.headers.authorization)
     if (checkToken === -1) {
       res.send({ error: 'no permission' })
-    } else { 
+    } else {
       req.tokenIndex = checkToken
-      next() }
+      next()
+    }
+  }, (req, res) => {
+    console.log(`user's token is at ${req.tokenIndex}`)
+    res.send(Userlist[req.tokenIndex])
+  })
+
+authen.route('/userByToken')
+  .get((req, res, next) => {
+    console.log(req.headers.authorization, TokenUserList)
+    const checkToken = TokenUserList.findIndex(element => element === req.headers.authorization)
+    if (checkToken === -1) {
+      res.send({ error: 'no permission' })
+    } else {
+      req.tokenIndex = checkToken
+      next()
+    }
+  }, (req, res) => {
+    console.log(`user's token is at ${req.tokenIndex}`)
+    res.send(Userlist[req.tokenIndex])
+  })
+
+authen.route('/logout')
+  .get((req, res, next) => {
+    console.log(req.headers.authorization, TokenUserList)
+    const checkToken = TokenUserList.findIndex(element => element === req.headers.authorization)
+    if (checkToken === -1) {
+      res.send({ error: 'no permission' })
+    } else {
+      req.tokenIndex = checkToken
+      next()
+    }
   }, (req, res) => {
     Userlist.splice(req.tokenIndex, 1)
     TokenUserList.splice(req.tokenIndex, 1)
@@ -74,72 +126,67 @@ authen.route('/logout')
   })
 
 authen.route('/login')
-.post((req, res) => {
-  User.findOne({username: req.body.username ,password: req.body.password}, (err, docs) =>{
-    if (err)
-    res.send("error")
-    if (!docs)
-    res.send("wrong user or password")
-    else
-    {
-      let indexToken
-      let timeOut = 0
-      const timeNow = Date.now()
-      let tokenKey = docs.username + docs.password + timeNow
-      let shuffledTokenKey = md5(tokenKey.split('').sort(() => { return 0.5-Math.random()}).join(''))
-      console.log(shuffledTokenKey)
-      do {
-        indexToken = TokenUserList.findIndex((token) => {
-          return token === tokenKey
+  .post((req, res) => {
+    User.findOne({ username: req.body.username, password: req.body.password }, (err, docs) => {
+      if (err) res.send('error')
+      if (!docs) res.send('wrong user or password')
+      else {
+        let indexToken
+        let timeOut = 0
+        const timeNow = Date.now()
+        const tokenKey = docs.username + docs.password + timeNow
+        let shuffledTokenKey = md5(tokenKey.split('').sort(() => 0.5 - Math.random()).join(''))
+        // console.log(shuffledTokenKey)
+        do {
+          indexToken = TokenUserList.findIndex((token) => {
+            return token === tokenKey
+          })
+          if (indexToken !== -1) {
+            console.log('duplicate')
+            shuffledTokenKey = md5(tokenKey.split('').sort(() => { return 0.5-Math.random()}).join(''))
+          }
+          timeOut += 1
+          if (timeOut >= 100) {
+            res.send({ error: 'time out' })
+            break
+          }
+        } while (indexToken !== -1)
+        const index = Userlist.findIndex((element) => {
+          return element.username === docs.username
         })
-        if (indexToken !== -1) {
-          console.log('duplicate')
-          shuffledTokenKey = md5(tokenKey.split('').sort(() => { return 0.5-Math.random()}).join(''))
+        // console.log(index)
+        if (index !== -1) {
+          Userlist.splice(index, 1)
+          TokenUserList.splice(index, 1)
         }
-        timeOut += 1
-        if(timeOut >= 100) 
-        {
-          res.send({ error: 'time out'})
-          break
-        }
-      } while (indexToken !== -1)
-      const index = Userlist.findIndex((element) => {
-        return element.username == docs.username
-      })
-      console.log(index)
-      if(index !== -1) {
-        Userlist.splice(index, 1)
-        TokenUserList.splice(index, 1)
+        Userlist.push(docs)
+        TokenUserList.push(shuffledTokenKey)
+        res.send({
+          user: docs,
+          __token: shuffledTokenKey
+        })
       }
-
-      Userlist.push(docs)
-      TokenUserList.push(shuffledTokenKey)
-      res.send({
-        user: docs,
-        __token: shuffledTokenKey
-      })
+    })
+  })
 
 authen.route('/userdata/:user')
-    .get((req, res) => {
-      User.findOne({_id:mongoose.Types.ObjectId(req.params.user)}).then((userData)=>{
-        if(!userData)
-          res.send({error: 'not found'})
-        else
-          Maps.findOne({userId: userData._id}).then(mapData=>{
-            if(!mapData)
-              res.send({error: 'not found'})
-            else
-            {
-              mapData.userId = userData
-              res.send(mapData)
-            }
+  .get((req, res) => {
+    User.findOne({ _id: mongoose.Types.ObjectId(req.params.user) }).then((userData) => {
+      if (!userData) res.send({ error: 'not found' })
+      else {
+        Maps.findOne({ userId: userData._id }).then((mapData) => {
+          if (!mapData) res.send({ error: 'not found' })
+          else {
+            mapData.userId = userData
+            res.send(mapData)
+          }
+        }).catch((err) => {
+          res.send(err)
         })
-      }).catch(err =>{
-        res.send(err)
-      })
+      }
     })
+  })
 
-authen.use(express.static(path.join(__dirname, '../../public')))
 authen.route('/getPic/:name')
   .get((req, res) => {
     res.sendFile(path.resolve(`./public/objects/${req.params.name}.jpg`))
@@ -153,15 +200,17 @@ authen.route('/createMap/:user')
     const resultMap = []
     const array = []
     const shuffle = (a) => {
-        let j, x, i;
-        for (i = a.length - 1; i > 0; i--) {
-            j = Math.floor(Math.random() * (i + 1));
-            x = a[i];
-            a[i] = a[j];
-            a[j] = x;
-        }
+      let j
+      let x
+      let i
+      for (i = a.length - 1; i > 0; i -= 1) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+      }
     }
-    SubObject.find({},(err,subObjects)=>{
+    SubObject.find({}, (err, subObjects) => {
       subObjects.forEach((subObject, index) => {
         console.log(subObject.rarity)
         for( let i = 0; i < subObject.rarity; i += 1) {
@@ -187,7 +236,6 @@ authen.route('/createMap/:user')
       shuffle(newObjectinMap)
       for(let i=0; i<newObjectinMap.length; i+=1)
       {
-        
         if(newObjectinMap[i] !== 'empty') {
                   const dummySlotItem = []
                   const dummySlotOutput = []
@@ -228,9 +276,6 @@ authen.route('/createMap/:user')
                   }
                 }
       }
-      
-      // [ a, b ,a ,a ,b , null, ....]
-      // console.log(resultMap) // subobject in area
       const mapData = {
         biome: 'Tropical Forest',
         userId: req.params.user,
@@ -268,32 +313,32 @@ authen.route('/map')
       })
     })
 
-    authen.route('/subob')
-    .get((req, res) => {
-      SubObject.find({}, (err, docs) => {
-        res.send(docs)
-      })
+authen.route('/subob')
+  .get((req, res) => {
+    SubObject.find({}, (err, docs) => {
+      res.send(docs)
     })
-    .post((req, res) => {
-      const newSubObject = SubObject(req.body)
-      newSubObject.save((err, docs) => {
-        if (err) res.send('insert error')
-        else res.send(docs)
-      })
+  })
+  .post((req, res) => {
+    const newSubObject = SubObject(req.body)
+    newSubObject.save((err, docs) => {
+      if (err) res.send('insert error')
+      else res.send(docs)
     })
+  })
 
 authen.route('/mainob')
-    .get((req, res) => {
-      MainObject.find({}, (err, docs) => {
-        res.send(docs)
-      })
+  .get((req, res) => {
+    MainObject.find({}, (err, docs) => {
+      res.send(docs)
     })
-    .post((req, res) => {
-      const newMainObject = MainObject(req.body)
-      newMainObject.save((err, docs) => {
-        if (err) res.send('insert error')
-        else res.send(docs)
-      })
+  })
+  .post((req, res) => {
+    const newMainObject = MainObject(req.body)
+    newMainObject.save((err, docs) => {
+      if (err) res.send('insert error')
+      else res.send(docs)
     })
+  })
 
 module.exports = authen

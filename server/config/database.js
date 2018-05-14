@@ -1,7 +1,9 @@
+// console.log(process.env.MODE)
+
 module.exports = {
   mongo: {
     host: 'localhost',
     port: '27017',
-    database: 'plearn'
+    database: process.env.MODE === 'production' ? 'plearn' : 'plearn_test'
   }
 }

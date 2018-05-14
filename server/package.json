@@ -5,15 +5,15 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "start-dev": "nodemon server.js"
+    "start": "MODE=production node server.js",
+    "start-dev": "MODE=develope nodemon server.js"
   },
   "author": "plearn.io",
   "license": "ISC",
   "dependencies": {
-    "blueimp-md5": "^2.10.0",
     "bcrypt": "^1.0.3",
     "bcrypt-nodejs": "^0.0.3",
+    "bluebird": "^3.5.1",
     "blueimp-md5": "^2.10.0",
     "body-parser": "^1.18.2",
     "connect-flash": "^0.1.1",
@@ -28,7 +28,8 @@
     "passport": "^0.4.0",
     "passport-facebook": "^2.1.1",
     "passport-local": "^1.0.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "socket.io": "^2.1.0"
   },
   "devDependencies": {
     "eslint": "^3.19.0",

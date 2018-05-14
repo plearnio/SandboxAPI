@@ -5,24 +5,24 @@ mongoose.Promise = require('bluebird')
 const Schema = mongoose.Schema
 
 const userSchema = new Schema({
-  username: {type:String},
+  username: { type: String },
   password: String,
   name: String,
   gameGeneralStatus: {
-      health: {type:Number, default:100},
-      energy: {type:Number, default:100},
-      hunger: {type:Number, default:100}
+    health: {type:Number, default:100},
+    energy: {type:Number, default:100},
+    hunger: {type:Number, default:100}
   },
   experience: {
-      level: String,
-      nowExp: Number,
-      maxExp: Number 
+    level: String,
+    nowExp: Number,
+    maxExp: Number 
   },
   pos: {
-      map: Number,
-      mapIndex: Number,
-      x: Number,
-      y: Number
+    map: { type: Schema.Types.ObjectId },
+    mapIndex: Number,
+    x: Number,
+    y: Number
   }
 })
 
