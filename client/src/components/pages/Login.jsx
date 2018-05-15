@@ -94,20 +94,13 @@ class Login extends Component {
     }
 
     return (
-      // <div>
-      //   <p>You must log in to view the page at {from.pathname}</p>
-      //   <form onSubmit={this.handleSignIn.bind(this)}>
-      //     <h3>Sign in</h3>
-      //     <input type="text" ref="username" placeholder="enter you username" />
-      //     <input type="password" ref="password" placeholder="enter password" />
-      //     <input type="submit" value="Login" />
-      //   </form>
-      // </div>
       <Grid>
         <CenterGrid>
-        <center><Title>
+        <center>
+          <Title>
             Please log in first
-          </Title></center>
+          </Title>
+        </center>
       <Form horizontal onSubmit={this.handleSignIn.bind(this)}>
       <FieldGroup
         id="formControlsEmail"

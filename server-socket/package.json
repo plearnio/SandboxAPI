@@ -1,33 +1,19 @@
 {
-  "name": "server",
+  "name": "server-socket",
   "version": "1.0.0",
-  "description": "server plearn.io",
+  "description": "server-socket plearn.io",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js MODE=develope",
-    "start-dev": "nodemon server.js MODE=develope"
+    "start": "node server.js",
+    "start-dev": "nodemon server.js"
   },
   "author": "plearn.io",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^1.0.3",
-    "bcrypt-nodejs": "^0.0.3",
-    "bluebird": "^3.5.1",
-    "blueimp-md5": "^2.10.0",
-    "body-parser": "^1.18.2",
-    "connect-flash": "^0.1.1",
-    "cookie": "^0.3.1",
-    "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
-    "ejs": "^2.5.7",
     "express": "^4.15.4",
-    "express-session": "^1.15.6",
     "mongoose": "^4.12.4",
-    "morgan": "^1.9.0",
-    "passport": "^0.4.0",
-    "passport-facebook": "^2.1.1",
-    "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "socket.io": "^2.1.0"
   },

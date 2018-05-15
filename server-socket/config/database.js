@@ -1,5 +1,5 @@
 // console.log(process.env.MODE)
-
+console.log(process.env.MODE)
 module.exports = {
   mongo: {
     host: process.env.MODE === 'production' ? 'mongo' : 'localhost',

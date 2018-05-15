@@ -54,11 +54,11 @@ const NavbarMenu = withRouter(
           <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>
-        <Navbar.Text><Navbar.Link href="#"> 
+        <Navbar.Text>
           <Link to="/home">
             Main 
           </Link>
-        </Navbar.Link></Navbar.Text>
+        </Navbar.Text>
         <Navbar.Text style={{ marginTop: '10px', marginBottom: '5px' }}>
           <Link to="/playground">
             <Button 
